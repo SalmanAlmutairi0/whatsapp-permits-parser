@@ -11,6 +11,7 @@ export async function POST(req) {
   try {
     const formData = await req.formData();
     const file = formData.get("file");
+    const startDateStr = formData.get("startDate"); // get start date from form
 
     if (!file || typeof file.text !== "function") {
       console.log("No file or not a valid File object");
@@ -56,14 +57,20 @@ export async function POST(req) {
         return {
           sender: msg.author,
           permits: keyword,
-          permitNumber: permitNumber ? `${keyword}-${permitNumber}` : "",
+          permitNumber: permitNumber ? permitNumber : "",
           stationNumber,
           text: cleanMessage,
           date: messageDate.toISOString().split("T")[0], // YYYY-MM-DD
           time: messageDate.toISOString().split("T")[1].split(".")[0], // HH:MM:SS
         };
       })
-      .filter(Boolean);
+      .filter(Boolean)
+      // Filter by start date if provided
+      .filter((msg) => {
+        if (!startDateStr) return true;
+        const startDate = new Date(startDateStr);
+        return new Date(msg.date) >= startDate;
+      });
 
     console.log("Filtered messages count:", filteredMessages.length);
     return NextResponse.json(filteredMessages);

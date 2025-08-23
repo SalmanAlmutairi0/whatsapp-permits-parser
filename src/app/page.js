@@ -5,15 +5,19 @@ import { mkConfig, generateCsv, download } from "export-to-csv";
 export default function Home() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   async function handleSubmit(e) {
     e.preventDefault();
     const fileInput = e.currentTarget.elements.namedItem("file");
+    const startDateInput = e.currentTarget.elements.namedItem("startDate");
     const file = fileInput.files?.[0];
+    const startDate = startDateInput.value; // get selected start date
     if (!file) return;
 
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("startDate", startDate); // send startDate to backend
 
     setLoading(true);
 
@@ -26,10 +30,23 @@ export default function Home() {
       if (!res.ok) throw new Error("Failed to parse file");
 
       const data = await res.json();
-      console.log("Received messages count:", data);
-      setMessages(data);
+
+      // If backend does not filter, you can filter here:
+      const filtered = data.filter((msg) => {
+        return new Date(msg.date) >= new Date(startDate);
+      });
+
+      console.log("Filtered messages count:", filtered.length);
+      setMessages(filtered);
+
+      if (filtered.length === 0) {
+        setError("No messages found for the selected date");
+      } else {
+        setError(null);
+      }
     } catch (err) {
       console.error(err);
+      setError(err.message || "An error occurred");
     } finally {
       setLoading(false);
     }
@@ -48,12 +65,21 @@ export default function Home() {
   };
 
   return (
-    <div className="container mx-auto mt-14 max-w-xl p-6 border rounded-xl shadow-xl bg-white font-sans">
+    <div className="container mx-auto mt-3 max-w-lg p-6 border rounded-xl shadow-xl bg-white font-sans">
       <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
         Upload WhatsApp file (txt format)
       </h1>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 mb-6">
+        <label className="flex flex-col gap-1">
+          <span className="font-medium text-gray-700">Start Date </span>
+          <input
+            type="date"
+            name="startDate"
+            required
+            className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </label>
         <input
           type="file"
           name="file"
@@ -67,6 +93,10 @@ export default function Home() {
         >
           {loading ? "Parsing..." : "Upload"}
         </button>
+
+        {messages.length == 0 && !loading && (
+          <p className="text-center text-red-500">{error}</p>
+        )}
       </form>
 
       {messages.length > 0 && (
@@ -90,23 +120,23 @@ export default function Home() {
               key={i}
               className="p-4 bg-gray-50 rounded-xl border border-gray-200 flex flex-col shadow-sm"
             >
-              <span className="font-semibold text-blue-700 text-lg">
+              <span className="font-semibold text-blue-700 text-lg text-right">
                 {msg.sender}
               </span>
-              <span className="text-xs text-gray-500 mb-2">
+              <span className="text-xs text-gray-500 mb-2 text-right">
                 {msg.date} - {msg.time}
               </span>
               <span className="text-gray-800 whitespace-pre-wrap">
                 {msg.text}
               </span>
               <span className="mt-2 inline-block bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                {msg.permits}
+                Permit: {msg.permits}
               </span>
               <span className="mt-2 inline-block bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                {msg.permitNumber}
+                Permit Number: {msg.permitNumber}
               </span>
               <span className="mt-2 inline-block bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                {msg.stationNumber}
+                Station Number: {msg.stationNumber}
               </span>
             </li>
           ))}
