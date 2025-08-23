@@ -68,7 +68,7 @@ export default function Home() {
     <div className="flex justify-center items-center h-svh" >
       <div className="container mt-3 max-w-lg p-6 border rounded-xl shadow-xl bg-white font-sans">
         <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
-          Upload WhatsApp file (txt format)
+          Upload WhatsApp file (.zip format)
         </h1>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 mb-6">
