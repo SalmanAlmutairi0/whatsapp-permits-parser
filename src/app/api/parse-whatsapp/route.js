@@ -95,12 +95,12 @@ export async function POST(req) {
           date: messageDate.toISOString().split("T")[0], // YYYY-MM-DD
           time: messageDate.toISOString().split("T")[1].split(".")[0], // HH:MM:SS
           sender: msg.author,
-          text: cleanMessage,
           stationNumber,
           permits: keyword,
           permitNumber: permitNumber ? permitNumber : "",
           issuedBy,
           issuedTo,
+          text: cleanMessage,
         };
       })
       .filter(Boolean)
