@@ -1,103 +1,117 @@
-import Image from "next/image";
+"use client";
+import { useState } from "react";
+import { mkConfig, generateCsv, download } from "export-to-csv";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+  async function handleSubmit(e) {
+    e.preventDefault();
+    const fileInput = e.currentTarget.elements.namedItem("file");
+    const file = fileInput.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/parse-whatsapp", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error("Failed to parse file");
+
+      const data = await res.json();
+      console.log("Received messages count:", data);
+      setMessages(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const handleDownloadCSV = () => {
+    if (!messages.length) return;
+
+    const csvConfig = mkConfig({
+      useKeysAsHeaders: true,
+      filename: "work_permits",
+    });
+
+    const csv = generateCsv(csvConfig)(messages);
+    download(csvConfig)(csv);
+  };
+
+  return (
+    <div className="container mx-auto mt-14 max-w-xl p-6 border rounded-xl shadow-xl bg-white font-sans">
+      <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
+        ارفع الملف
+      </h1>
+
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 mb-6">
+        <input
+          type="file"
+          name="file"
+          accept=".txt"
+          required
+          className="border border-gray-300 rounded-lg px-3 py-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <button
+          type="submit"
+          className="bg-blue-600 text-white w-full py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          {loading ? "Parsing..." : "Upload"}
+        </button>
+      </form>
+
+      {messages.length > 0 && (
+        <ul className="space-y-4 max-h-[500px] overflow-y-auto">
+          <div className="p-2 bg-blue-50 border border-blue-200 rounded-lg text-blue-800">
+            <button
+              onClick={handleDownloadCSV}
+              className="mt-2 bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors"
+            >
+              Export as CSV
+            </button>
+            <div className="flex justify-between items-center mt-4">
+              <p>Preview:</p>
+              <p>
+                Total Number of Records: <b>{messages.length} </b>
+              </p>
+            </div>
+          </div>
+          {messages.map((msg, i) => (
+            <li
+              key={i}
+              className="p-4 bg-gray-50 rounded-xl border border-gray-200 flex flex-col shadow-sm"
+            >
+              <span className="font-semibold text-blue-700 text-lg">
+                {msg.sender}
+              </span>
+              <span className="text-xs text-gray-500 mb-2">
+                {msg.date} - {msg.time}
+              </span>
+              <span className="text-gray-800 whitespace-pre-wrap">
+                {msg.text}
+              </span>
+              <span className="mt-2 inline-block bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                {msg.permits}
+              </span>
+              <span className="mt-2 inline-block bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                {msg.permitNumber}
+              </span>
+              <span className="mt-2 inline-block bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                {msg.stationNumber}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
