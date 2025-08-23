@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { parseString } from "whatsapp-chat-parser";
+import AdmZip from "adm-zip";
 
 export const config = {
   api: {
@@ -18,7 +19,24 @@ export async function POST(req) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    const chatText = await file.text();
+    // Convert file to buffer
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const zip = new AdmZip(buffer);
+    const zipEntries = zip.getEntries();
+
+    // Find the first .txt file inside the ZIP
+    const txtEntry = zipEntries.find((entry) =>
+      entry.entryName.endsWith(".txt")
+    );
+    if (!txtEntry) {
+      console.log("No .txt file found in ZIP");
+      return NextResponse.json(
+        { error: "No .txt file found in ZIP" },
+        { status: 400 }
+      );
+    }
+    
+    const chatText = txtEntry.getData().toString("utf8");
 
     const messages = await parseString(chatText, {
       returnMessagesWithParsedDates: true,

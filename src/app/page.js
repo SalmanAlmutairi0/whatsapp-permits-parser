@@ -65,57 +65,58 @@ export default function Home() {
   };
 
   return (
-    <div className="container mx-auto mt-3 max-w-lg p-6 border rounded-xl shadow-xl bg-white font-sans">
-      <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
-        Upload WhatsApp file (txt format)
-      </h1>
+    <div className="flex justify-center items-center h-svh" >
+      <div className="container mt-3 max-w-lg p-6 border rounded-xl shadow-xl bg-white font-sans">
+        <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
+          Upload WhatsApp file (txt format)
+        </h1>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 mb-6">
-        <label className="flex flex-col gap-1">
-          <span className="font-medium text-gray-700">Start Date </span>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 mb-6">
+          <label className="flex flex-col gap-1">
+            <span className="font-medium text-gray-700">Start Date </span>
+            <input
+              type="date"
+              name="startDate"
+              required
+              className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </label>
           <input
-            type="date"
-            name="startDate"
+            type="file"
+            name="file"
+            accept=".txt"
             required
-            className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border border-gray-300 rounded-lg px-3 py-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-        </label>
-        <input
-          type="file"
-          name="file"
-          accept=".txt"
-          required
-          className="border border-gray-300 rounded-lg px-3 py-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button
-          type="submit"
-          className="bg-blue-600 text-white w-full py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-        >
-          {loading ? "Parsing..." : "Upload"}
-        </button>
+          <button
+            type="submit"
+            className="bg-blue-600 text-white w-full py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+          >
+            {loading ? "Parsing..." : "Upload"}
+          </button>
 
-        {messages.length == 0 && !loading && (
-          <p className="text-center text-red-500">{error}</p>
-        )}
-      </form>
+          {messages.length == 0 && !loading && (
+            <p className="text-center text-red-500">{error}</p>
+          )}
+        </form>
 
-      {messages.length > 0 && (
-        <ul className="space-y-4 max-h-[500px] overflow-y-auto">
-          <div className="p-2 bg-blue-50 border border-blue-200 rounded-lg text-blue-800">
-            <button
-              onClick={handleDownloadCSV}
-              className="mt-2 bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors"
-            >
-              Export as CSV
-            </button>
-            <div className="flex justify-between items-center mt-4">
-              <p>Preview:</p>
-              <p>
-                Total Number of Records: <b>{messages.length} </b>
-              </p>
+        {messages.length > 0 && (
+          <ul className="space-y-4 max-h-[500px] overflow-y-auto">
+            <div className="flex flex-col justify-center p-2 bg-blue-50 border border-blue-200 rounded-lg text-blue-800">
+              <div className="flex justify-between items-center ">
+                <p>Results:</p>
+                <p>
+                  Total Number of Records: <b>{messages.length} </b>
+                </p>
+              </div>
+              <button
+                onClick={handleDownloadCSV}
+                className=" mt-5 mx-auto w-full bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors"
+              >
+                Export as CSV
+              </button>
             </div>
-          </div>
-          {messages.map((msg, i) => (
+            {/* {messages.map((msg, i) => (
             <li
               key={i}
               className="p-4 bg-gray-50 rounded-xl border border-gray-200 flex flex-col shadow-sm"
@@ -139,9 +140,10 @@ export default function Home() {
                 Station Number: {msg.stationNumber}
               </span>
             </li>
-          ))}
-        </ul>
-      )}
+          ))} */}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
