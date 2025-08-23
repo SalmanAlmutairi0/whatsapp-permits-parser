@@ -54,7 +54,7 @@ export async function POST(req) {
         // Permit regex (PTW/LOA/SFT + number)
         // Permit regex (PTW/LOA/SFT + number) or just "/"
         const permitRegex = new RegExp(
-          `\\b(${keywords.join("|")})\\b[\\s:\\-#]*(\\d+)?|\\/`,
+          `\\b(${keywords.join("|")})\\b[\\s:\\-#]*(\\d+)?`,
           "i"
         );
         const permitMatch = cleanMessage.match(permitRegex);
