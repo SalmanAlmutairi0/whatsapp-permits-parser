@@ -92,15 +92,15 @@ export async function POST(req) {
           msg.date instanceof Date ? msg.date : new Date(msg.date);
 
         return {
-          sender: msg.author,
-          permits: keyword,
-          permitNumber: permitNumber ? permitNumber : "",
-          stationNumber,
-          issuedBy,
-          issuedTo,
-          text: cleanMessage,
           date: messageDate.toISOString().split("T")[0], // YYYY-MM-DD
           time: messageDate.toISOString().split("T")[1].split(".")[0], // HH:MM:SS
+          sender: msg.author,
+          text: cleanMessage,
+          stationNumber,
+          permits: keyword,
+          permitNumber: permitNumber ? permitNumber : "",
+          issuedBy,
+          issuedTo,
         };
       })
       .filter(Boolean)
