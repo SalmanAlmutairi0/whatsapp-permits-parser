@@ -50,7 +50,7 @@ export default function Home() {
   return (
     <div className="container mx-auto mt-14 max-w-xl p-6 border rounded-xl shadow-xl bg-white font-sans">
       <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
-        ارفع الملف
+        Upload WhatsApp file (txt format)
       </h1>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 mb-6">
