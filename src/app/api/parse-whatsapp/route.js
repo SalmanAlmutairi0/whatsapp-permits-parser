@@ -35,7 +35,7 @@ export async function POST(req) {
         { status: 400 }
       );
     }
-    
+
     const chatText = txtEntry.getData().toString("utf8");
 
     const messages = await parseString(chatText, {
@@ -69,6 +69,25 @@ export async function POST(req) {
         const stationMatch = cleanMessage.match(stationRegex);
         const stationNumber = stationMatch ? stationMatch[1] : "";
 
+        // Issued To / Issued By regex
+        const issuedToRegex = /issued to\s*[:\-]?\s*(.+?)(?:\n|$)/i;
+        const issuedByRegex = /issued by\s*[:\-]?\s*(.+?)(?:\n|$)/i;
+
+        let issuedToMatch = cleanMessage.match(issuedToRegex);
+        let issuedByMatch = cleanMessage.match(issuedByRegex);
+
+        const issuedTo = issuedToMatch
+          ? issuedToMatch[1].trim()
+          : issuedByMatch
+          ? msg.author
+          : ""; // if issuedTo missing but issuedBy exists, default to sender
+
+        const issuedBy = issuedByMatch
+          ? issuedByMatch[1].trim()
+          : issuedToMatch
+          ? msg.author
+          : ""; // if issuedBy missing but issuedTo exists, default to sender
+
         const messageDate =
           msg.date instanceof Date ? msg.date : new Date(msg.date);
 
@@ -77,6 +96,8 @@ export async function POST(req) {
           permits: keyword,
           permitNumber: permitNumber ? permitNumber : "",
           stationNumber,
+          issuedBy,
+          issuedTo,
           text: cleanMessage,
           date: messageDate.toISOString().split("T")[0], // YYYY-MM-DD
           time: messageDate.toISOString().split("T")[1].split(".")[0], // HH:MM:SS

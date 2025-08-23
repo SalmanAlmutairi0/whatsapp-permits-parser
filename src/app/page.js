@@ -116,7 +116,7 @@ export default function Home() {
                 Export as CSV
               </button>
             </div>
-            {/* {messages.map((msg, i) => (
+            {messages.map((msg, i) => (
             <li
               key={i}
               className="p-4 bg-gray-50 rounded-xl border border-gray-200 flex flex-col shadow-sm"
@@ -139,8 +139,14 @@ export default function Home() {
               <span className="mt-2 inline-block bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">
                 Station Number: {msg.stationNumber}
               </span>
+              <span className="mt-2 inline-block bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                issuedBy: {msg.issuedBy}
+              </span>
+              <span className="mt-2 inline-block bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                issuedTo: {msg.issuedTo}
+              </span>
             </li>
-          ))} */}
+          ))}
           </ul>
         )}
       </div>
