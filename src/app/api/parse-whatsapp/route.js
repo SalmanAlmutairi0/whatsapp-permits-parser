@@ -58,7 +58,6 @@ export async function POST(req) {
           "i"
         );
 
-        
         const permitMatch = cleanMessage.match(permitRegex);
 
         if (!permitMatch) return null;
@@ -79,7 +78,7 @@ export async function POST(req) {
         let issuedToMatch = cleanMessage.match(issuedToRegex);
         let issuedByMatch = cleanMessage.match(issuedByRegex);
 
-        const issuedTo = issuedToMatch
+        let issuedTo = issuedToMatch
           ? issuedToMatch[1].trim()
           : issuedByMatch
           ? msg.author
@@ -91,6 +90,31 @@ export async function POST(req) {
           ? msg.author
           : ""; // if issuedBy missing but issuedTo exists, default to sender
 
+        //  if both are missing assign sender to issued to
+        if (!issuedBy && !issuedTo) {
+          issuedTo = msg.author;
+        }
+
+        // Remark regex (remark:, remarks:, edit/, note:)
+        const remarkRegex =
+          /\b(remark|remarks|edit|note|notes)\b[\s:\/\-#]*(.+)/i;
+
+        let remarkNumber = "";
+        const remarkMatch = cleanMessage.match(remarkRegex);
+
+        if (remarkMatch) {
+          const remarkText = remarkMatch[2].trim(); // text after remark:
+
+          // Only extract number after PTW/LOA/SFT
+          const numberMatch = remarkText.match(
+            /\b(?:PTW|LOA|SFT)[\s:\-/#]*(\d+)/i
+          );
+
+          if (numberMatch) {
+            remarkNumber = numberMatch[1]; 
+          }
+        }
+
         const messageDate =
           msg.date instanceof Date ? msg.date : new Date(msg.date);
 
@@ -98,12 +122,13 @@ export async function POST(req) {
           date: messageDate.toISOString().split("T")[0], // YYYY-MM-DD
           time: messageDate.toISOString().split("T")[1].split(".")[0], // HH:MM:SS
           sender: msg.author,
-          text: cleanMessage,
-          stationNumber,
-          permits: keyword,
-          permitNumber: permitNumber ? permitNumber : "",
+          msg: cleanMessage,
+          SS: stationNumber,
+          PermitType: keyword,
+          PermitNumber: permitNumber ? permitNumber : "",
           issuedBy,
           issuedTo,
+          remark: remarkNumber ? remarkNumber : "",
         };
       })
       .filter(Boolean)
@@ -121,3 +146,4 @@ export async function POST(req) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }
+
