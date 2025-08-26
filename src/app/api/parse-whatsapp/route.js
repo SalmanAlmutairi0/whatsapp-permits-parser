@@ -79,7 +79,6 @@ export async function POST(req) {
         let issuedByMatch = cleanMessage.match(issuedByRegex);
 
         let issuedTo = issuedToMatch
-        let issuedTo = issuedToMatch
           ? issuedToMatch[1].trim()
           : issuedByMatch
           ? msg.author
@@ -90,21 +89,6 @@ export async function POST(req) {
           : issuedToMatch
           ? msg.author
           : ""; // if issuedBy missing but issuedTo exists, default to sender
-
-        //  if both are missing assign sender to issued to
-        if (!issuedBy && !issuedTo) {
-          issuedTo = msg.author;
-        }
-
-        // Remarks regex
-        const remarkRegex = new RegExp(
-          `\\b(remark|remarks|note|notes|edit)\\b[\\s:\\-#\\/]*(\\d+)?`,
-          "i"
-        );
-        const remarkMatch = cleanMessage.match(remarkRegex);
-        const remarkNumber = remarkMatch ? remarkMatch[2] || "" : "";
-
-
 
         //  if both are missing assign sender to issued to
         if (!issuedBy && !issuedTo) {
@@ -149,7 +133,6 @@ export async function POST(req) {
           issuedBy,
           issuedTo,
           remark: remarkNumber ? remarkNumber : "",
-          remark: remarkNumber ? remarkNumber : "",
         };
       })
       .filter(Boolean)
@@ -167,4 +150,3 @@ export async function POST(req) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }
-
