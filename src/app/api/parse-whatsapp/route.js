@@ -58,7 +58,6 @@ export async function POST(req) {
           "i"
         );
 
-        
         const permitMatch = cleanMessage.match(permitRegex);
 
         if (!permitMatch) return null;
@@ -79,7 +78,7 @@ export async function POST(req) {
         let issuedToMatch = cleanMessage.match(issuedToRegex);
         let issuedByMatch = cleanMessage.match(issuedByRegex);
 
-        const issuedTo = issuedToMatch
+        let issuedTo = issuedToMatch
           ? issuedToMatch[1].trim()
           : issuedByMatch
           ? msg.author
@@ -91,6 +90,21 @@ export async function POST(req) {
           ? msg.author
           : ""; // if issuedBy missing but issuedTo exists, default to sender
 
+        //  if both are missing assign sender to issued to
+        if (!issuedBy && !issuedTo) {
+          issuedTo = msg.author;
+        }
+
+        // Remarks regex
+        const remarkRegex = new RegExp(
+          `\\b(remark|remarks|note|notes|edit)\\b[\\s:\\-#\\/]*(\\d+)?`,
+          "i"
+        );
+        const remarkMatch = cleanMessage.match(remarkRegex);
+        const remarkNumber = remarkMatch ? remarkMatch[2] || "" : "";
+
+
+
         const messageDate =
           msg.date instanceof Date ? msg.date : new Date(msg.date);
 
@@ -98,12 +112,13 @@ export async function POST(req) {
           date: messageDate.toISOString().split("T")[0], // YYYY-MM-DD
           time: messageDate.toISOString().split("T")[1].split(".")[0], // HH:MM:SS
           sender: msg.author,
-          text: cleanMessage,
-          stationNumber,
-          permits: keyword,
-          permitNumber: permitNumber ? permitNumber : "",
+          msg: cleanMessage,
+          SS: stationNumber,
+          PermitType: keyword,
+          PermitNumber: permitNumber ? permitNumber : "",
           issuedBy,
           issuedTo,
+          remark: remarkNumber ? remarkNumber : "",
         };
       })
       .filter(Boolean)
@@ -121,3 +136,9 @@ export async function POST(req) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }
+
+/**
+ * if the message contines the flowoing  remark, edit, notes, note or remarks its should be folowed by permit details eg.LOA 123 add the number to the remark coulmn
+ *  if there is no issued by or issued to  the sender should be assigned to both
+ *
+ */
