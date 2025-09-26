@@ -84,7 +84,7 @@ export default function Home() {
           <input
             type="file"
             name="file"
-            accept=".txt"
+            accept=".zip"
             required
             className="border border-gray-300 rounded-lg px-3 py-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
