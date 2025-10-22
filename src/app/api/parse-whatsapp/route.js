@@ -84,7 +84,7 @@ export async function POST(req) {
           ? msg.author
           : ""; // if issuedTo missing but issuedBy exists, default to sender
 
-        const issuedBy = issuedByMatch
+        let issuedBy = issuedByMatch
           ? issuedByMatch[1].trim()
           : issuedToMatch
           ? msg.author
