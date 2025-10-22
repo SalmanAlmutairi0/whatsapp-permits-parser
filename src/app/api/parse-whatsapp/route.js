@@ -93,6 +93,7 @@ export async function POST(req) {
         //  if both are missing assign sender to issued to
         if (!issuedBy && !issuedTo) {
           issuedTo = msg.author;
+          issuedBy = msg.author;
         }
 
         // Remark regex (remark:, remarks:, edit/, note:)
