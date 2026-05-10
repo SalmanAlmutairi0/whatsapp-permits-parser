@@ -4,7 +4,7 @@ import AdmZip from "adm-zip";
 
 export const config = {
   api: {
-    bodyParser: false, // important for file streaming
+    bodyParser: false,
   },
 };
 
@@ -12,7 +12,7 @@ export async function POST(req) {
   try {
     const formData = await req.formData();
     const file = formData.get("file");
-    const startDateStr = formData.get("startDate"); // get start date from form
+    const startDateStr = formData.get("startDate");
 
     if (!file || typeof file.text !== "function") {
       console.log("No file or not a valid File object");
@@ -26,13 +26,13 @@ export async function POST(req) {
 
     // Find the first .txt file inside the ZIP
     const txtEntry = zipEntries.find((entry) =>
-      entry.entryName.endsWith(".txt")
+      entry.entryName.endsWith(".txt"),
     );
     if (!txtEntry) {
       console.log("No .txt file found in ZIP");
       return NextResponse.json(
         { error: "No .txt file found in ZIP" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -54,8 +54,8 @@ export async function POST(req) {
         // Permit regex (PTW/LOA/SFT + number)
         // Permit regex (PTW/LOA/SFT + number) or just "/"
         const permitRegex = new RegExp(
-          `\\b(${keywords.join("|")})\\b[\\s:\\-#\\/]*(\\d+)?`,
-          "i"
+          `(${keywords.join("|")})[\\s:\\-#\\/]*(\\d+)?`,
+          "i",
         );
 
         const permitMatch = cleanMessage.match(permitRegex);
@@ -67,7 +67,7 @@ export async function POST(req) {
 
         // Station regex (SS 123, S/S 123, المحطة 123)
         const stationRegex =
-          /\b(?:SS|S\/S|المحطة|المحطه|بالمحطة|بالمحطه)\s*(\d+)/i;
+          /(?:SS|S\/S|المحطة|المحطه|بالمحطة|بالمحطه)\s*([\d٠-٩]+)/i;
         const stationMatch = cleanMessage.match(stationRegex);
         const stationNumber = stationMatch ? stationMatch[1] : "";
 
@@ -81,14 +81,14 @@ export async function POST(req) {
         let issuedTo = issuedToMatch
           ? issuedToMatch[1].trim()
           : issuedByMatch
-          ? msg.author
-          : ""; // if issuedTo missing but issuedBy exists, default to sender
+            ? msg.author
+            : ""; // if issuedTo missing but issuedBy exists, default to sender
 
         let issuedBy = issuedByMatch
           ? issuedByMatch[1].trim()
           : issuedToMatch
-          ? msg.author
-          : ""; // if issuedBy missing but issuedTo exists, default to sender
+            ? msg.author
+            : ""; // if issuedBy missing but issuedTo exists, default to sender
 
         //  if both are missing assign sender to issued to
         if (!issuedBy && !issuedTo) {
@@ -108,11 +108,11 @@ export async function POST(req) {
 
           // Only extract number after PTW/LOA/SFT
           const numberMatch = remarkText.match(
-            /\b(?:PTW|LOA|SFT)[\s:\-/#]*(\d+)/i
+            /\b(?:PTW|LOA|SFT)[\s:\-/#]*(\d+)/i,
           );
 
           if (numberMatch) {
-            remarkNumber = numberMatch[1]; 
+            remarkNumber = numberMatch[1];
           }
         }
 
