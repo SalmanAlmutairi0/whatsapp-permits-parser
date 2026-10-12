@@ -9,27 +9,40 @@ export const config = {
 };
 
 export async function POST(req) {
+  console.info("[parse-whatsapp] Request received");
+
   try {
     const formData = await req.formData();
     const file = formData.get("file");
     const startDateStr = formData.get("startDate");
 
     if (!file || typeof file.text !== "function") {
-      console.log("No file or not a valid File object");
+      console.warn("[parse-whatsapp] Upload rejected: missing or invalid file", {
+        status: 400,
+      });
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
     // Convert file to buffer
     const buffer = Buffer.from(await file.arrayBuffer());
+    console.info("[parse-whatsapp] Upload read", {
+      bytes: buffer.length,
+      dateFilterApplied: Boolean(startDateStr),
+    });
     const zip = new AdmZip(buffer);
     const zipEntries = zip.getEntries();
+    console.info("[parse-whatsapp] ZIP opened", {
+      entryCount: zipEntries.length,
+    });
 
     // Find the first .txt file inside the ZIP
     const txtEntry = zipEntries.find((entry) =>
       entry.entryName.endsWith(".txt"),
     );
     if (!txtEntry) {
-      console.log("No .txt file found in ZIP");
+      console.warn("[parse-whatsapp] Upload rejected: no .txt file in ZIP", {
+        status: 400,
+      });
       return NextResponse.json(
         { error: "No .txt file found in ZIP" },
         { status: 400 },
@@ -37,11 +50,17 @@ export async function POST(req) {
     }
 
     const chatText = txtEntry.getData().toString("utf8");
+    console.info("[parse-whatsapp] Chat text extracted", {
+      characterCount: chatText.length,
+    });
 
     const messages = await parseString(chatText, {
       returnMessagesWithParsedDates: true,
       includeSystemMessages: false,
       parseAttachments: false,
+    });
+    console.info("[parse-whatsapp] Chat parsed", {
+      messageCount: messages.length,
     });
 
     const keywords = ["PTW", "LOA", "SFT"];
@@ -144,10 +163,14 @@ export async function POST(req) {
         return new Date(msg.date) >= startDate;
       });
 
-    console.log("Filtered messages count:", filteredMessages.length);
+    console.info("[parse-whatsapp] Request completed", {
+      parsedMessageCount: messages.length,
+      filteredMessageCount: filteredMessages.length,
+      status: 200,
+    });
     return NextResponse.json(filteredMessages);
   } catch (e) {
-    console.error(e);
+    console.error("[parse-whatsapp] Request failed", { status: 500 }, e);
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }

@@ -13,7 +13,15 @@ export default function Home() {
     const startDateInput = e.currentTarget.elements.namedItem("startDate");
     const file = fileInput.files?.[0];
     const startDate = startDateInput.value; // get selected start date
-    if (!file) return;
+    if (!file) {
+      console.warn("[whatsapp-parser] Upload skipped: no file selected");
+      return;
+    }
+
+    console.info("[whatsapp-parser] Upload started", {
+      bytes: file.size,
+      dateFilterApplied: Boolean(startDate),
+    });
 
     const formData = new FormData();
     formData.append("file", file);
@@ -26,34 +34,52 @@ export default function Home() {
         method: "POST",
         body: formData,
       });
+      console.info("[whatsapp-parser] Parse response received", {
+        status: res.status,
+      });
 
       if (!res.ok) throw new Error("Failed to parse file");
 
       const data = await res.json();
+      console.info("[whatsapp-parser] Parse results loaded", {
+        messageCount: data.length,
+      });
 
       // If backend does not filter, you can filter here:
       const filtered = data.filter((msg) => {
         return new Date(msg.date) >= new Date(startDate);
       });
 
-      console.log("Filtered messages count:", filtered.length);
+      console.info("[whatsapp-parser] Date filtering completed", {
+        receivedMessageCount: data.length,
+        filteredMessageCount: filtered.length,
+      });
       setMessages(filtered);
 
       if (filtered.length === 0) {
+        console.warn("[whatsapp-parser] No messages found for the selected date");
         setError("No messages found for the selected date");
       } else {
         setError(null);
       }
     } catch (err) {
-      console.error(err);
+      console.error("[whatsapp-parser] Upload failed", err);
       setError(err.message || "An error occurred");
     } finally {
       setLoading(false);
+      console.info("[whatsapp-parser] Upload processing finished");
     }
   }
 
   const handleDownloadCSV = () => {
-    if (!messages.length) return;
+    if (!messages.length) {
+      console.warn("[whatsapp-parser] CSV export skipped: no messages");
+      return;
+    }
+
+    console.info("[whatsapp-parser] CSV export started", {
+      recordCount: messages.length,
+    });
 
     const csvConfig = mkConfig({
       useKeysAsHeaders: true,
@@ -62,6 +88,9 @@ export default function Home() {
 
     const csv = generateCsv(csvConfig)(messages);
     download(csvConfig)(csv);
+    console.info("[whatsapp-parser] CSV download triggered", {
+      recordCount: messages.length,
+    });
   };
 
   return (
